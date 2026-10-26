@@ -7,6 +7,8 @@ import authrouter from "./api/routes/auth.routes.js";
 import organizationRouter from "./api/routes/organization.routes.js";
 import productRouter from "./api/routes/product.routes.js";
 
+import framworksRouter from "./api/routes/framework.routes.js";
+
 const app = express();
 
 //  config :
@@ -31,5 +33,8 @@ app.use(cookieParser());
 app.use("/api/auth", authrouter);
 app.use("/api/organization", organizationRouter);
 app.use("/api/product", productRouter);
+
+// admin route :
+app.use("/api/frameworks", framworksRouter);
 
 export default app;
