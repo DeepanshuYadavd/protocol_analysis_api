@@ -1,3 +1,7 @@
+import { randomUUID } from "crypto";
+import qdrantClient from "../../config/qdrant.js";
+import { chunkFramework } from "../../utils/chunking.js";
+import { generateEmbedding } from "../../utils/embedings.js";
 import { Framework } from "../models/frameworks.schema.js";
 
 export const createFrameWork = async (req, res, next) => {
@@ -51,6 +55,26 @@ export const createFrameWork = async (req, res, next) => {
       appliesTo,
       createdBy: req.user.id,
     });
+
+    //  vector db part :
+    try {
+      const chunks = chunkFramework(framework);
+      for (const chunk of chunks) {
+        const vector = await generateEmbedding(chunk.text);
+        await qdrantClient.upsert("frameworks", {
+          wait: true,
+          points: [
+            {
+              id: randomUUID(),
+              vector: vector,
+              payload: { text: chunk.text, ...chunk.metadata },
+            },
+          ],
+        });
+      }
+    } catch (vectorErr) {
+      console.error("failed to save in vector db");
+    }
 
     return res.status(201).json({
       data: framework,
